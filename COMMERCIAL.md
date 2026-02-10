@@ -53,7 +53,7 @@ Commercial licenses may include:
 
 To inquire about commercial licensing, contact:
 
-**[your email here]**
+**conorpowermoran@gmail.com**
 
 ---
 
