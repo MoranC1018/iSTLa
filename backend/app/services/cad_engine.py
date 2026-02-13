@@ -223,9 +223,21 @@ def mesh_from_partspec(spec: PartSpec) -> trimesh.Trimesh:
     verts = verts + bounds_used.min_xyz.astype(np.float32)
 
     mesh = trimesh.Trimesh(vertices=verts, faces=faces, vertex_normals=normals, process=True)
-    # basic cleanup
-    mesh.remove_degenerate_faces()
-    mesh.remove_duplicate_faces()
+    # Basic cleanup.
+    #
+    # NOTE: trimesh 4.x removed remove_degenerate_faces/remove_duplicate_faces in favor of
+    # selecting faces with nondegenerate_faces()/unique_faces(). Keep compatibility with
+    # older releases that still expose the mutating helpers.
+    if hasattr(mesh, "remove_degenerate_faces"):
+        mesh.remove_degenerate_faces()
+    elif hasattr(mesh, "nondegenerate_faces"):
+        mesh.update_faces(mesh.nondegenerate_faces())
+
+    if hasattr(mesh, "remove_duplicate_faces"):
+        mesh.remove_duplicate_faces()
+    elif hasattr(mesh, "unique_faces"):
+        mesh.update_faces(mesh.unique_faces())
+
     mesh.remove_infinite_values()
     mesh.merge_vertices()
 
@@ -303,4 +315,3 @@ def export_stl(spec: PartSpec, out_path: str | Path, *, max_overhang_angle_deg: 
         report["printability"] = _printability_report(mesh, float(max_overhang_angle_deg))
 
     return report
-
