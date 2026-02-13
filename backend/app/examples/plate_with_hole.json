@@ -1,0 +1,71 @@
+{
+  "version": "1.0",
+  "name": "Plate with 2 holes",
+  "units": "mm",
+  "solids": [
+    {
+      "id": "base",
+      "type": "box",
+      "center": [
+        0,
+        0,
+        2.5
+      ],
+      "size": [
+        60,
+        40,
+        5
+      ],
+      "tags": [
+        "base"
+      ]
+    },
+    {
+      "id": "hole1",
+      "type": "cylinder_z",
+      "center": [
+        -15,
+        0,
+        2.5
+      ],
+      "radius": 3,
+      "height": 12,
+      "tags": [
+        "hole"
+      ],
+      "role": "tool"
+    },
+    {
+      "id": "hole2",
+      "type": "cylinder_z",
+      "center": [
+        15,
+        0,
+        2.5
+      ],
+      "radius": 3,
+      "height": 12,
+      "tags": [
+        "hole"
+      ],
+      "role": "tool"
+    }
+  ],
+  "operations": [
+    {
+      "id": "result",
+      "op": "difference",
+      "a": "base",
+      "b": [
+        "hole1",
+        "hole2"
+      ]
+    }
+  ],
+  "final": "result",
+  "tessellation": {
+    "grid_pitch": 0.6,
+    "padding": 3.0,
+    "max_voxels": 3000000
+  }
+}

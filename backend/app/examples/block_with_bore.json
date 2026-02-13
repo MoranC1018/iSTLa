@@ -1,0 +1,55 @@
+{
+  "version": "1.0",
+  "name": "Block with bore",
+  "units": "mm",
+  "solids": [
+    {
+      "id": "base",
+      "type": "box",
+      "center": [
+        0,
+        0,
+        10
+      ],
+      "size": [
+        40,
+        25,
+        20
+      ],
+      "tags": [
+        "base"
+      ]
+    },
+    {
+      "id": "bore",
+      "type": "cylinder_z",
+      "center": [
+        0,
+        0,
+        10
+      ],
+      "radius": 6,
+      "height": 24,
+      "tags": [
+        "hole"
+      ],
+      "role": "tool"
+    }
+  ],
+  "operations": [
+    {
+      "id": "result",
+      "op": "difference",
+      "a": "base",
+      "b": [
+        "bore"
+      ]
+    }
+  ],
+  "final": "result",
+  "tessellation": {
+    "grid_pitch": 0.6,
+    "padding": 3.0,
+    "max_voxels": 3000000
+  }
+}

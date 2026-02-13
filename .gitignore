@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+
+# generated outputs
+artifacts/
+data/
+out/
+out_test/
+
+# secrets (local self-host mode)
+user_api.csv

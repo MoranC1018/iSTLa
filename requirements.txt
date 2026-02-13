@@ -1,0 +1,14 @@
+fastapi>=0.110
+uvicorn[standard]>=0.27
+pydantic>=2.6
+numpy>=1.24
+trimesh>=4.0
+scikit-image>=0.22
+svgwrite>=1.4
+python-multipart>=0.0.9
+
+# Optional but strongly recommended for sketch downscaling/compression
+Pillow>=10.0
+
+# later (OpenAI integration)
+openai>=1.40.0

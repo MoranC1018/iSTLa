@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI STL Builder MVP</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header>
+    <h1>AI STL Builder MVP</h1>
+    <p class="muted">Concept → dimensioned drawing → approve → final STL</p>
+    <p class="muted">Backend API docs: <a href="/docs" target="_blank" rel="noreferrer">/docs</a></p>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>1) Session</h2>
+      <div class="row">
+        <input id="sessionName" placeholder="Session name (optional)" />
+        <button id="btnCreateSession">Create session</button>
+        <button id="btnListSessions" class="secondary">List sessions</button>
+      </div>
+      <div class="row">
+        <input id="sessionLoadId" placeholder="Load existing session id" />
+        <button id="btnLoadSession" class="secondary">Load session</button>
+      </div>
+      <div class="row">
+        <label>Session ID:</label>
+        <code id="sessionId">(none)</code>
+        <span class="muted small">Constraints hash:</span>
+        <code id="constraintsHash">(none)</code>
+      </div>
+      <pre id="sessionsList" class="pre muted"></pre>
+    </section>
+
+    <section class="card">
+      <h2>1b) Constraints (session-level)</h2>
+      <p class="muted small">These requirements are enforced on approval/finalize, and shown as pass/fail checks per revision.</p>
+
+      <div class="grid3">
+        <div>
+          <label class="lbl">Preferred units</label>
+          <select id="c_units">
+            <option value="mm">mm</option>
+            <option value="cm">cm</option>
+            <option value="in">in</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="lbl">Overall size tolerance (±)</label>
+          <input id="c_tol" placeholder="e.g. 0.2" />
+        </div>
+
+        <div>
+          <label class="lbl">Hole diameter offset (export-only)</label>
+          <input id="c_hole_offset" placeholder="e.g. 0.2" />
+        </div>
+      </div>
+
+      <div class="triplet">
+        <div>
+          <label class="lbl">Must fit within (W, D, H)</label>
+          <div class="row">
+            <input id="c_fit_w" placeholder="W" />
+            <input id="c_fit_d" placeholder="D" />
+            <input id="c_fit_h" placeholder="H" />
+          </div>
+        </div>
+        <div>
+          <label class="lbl">Target overall size (W, D, H)</label>
+          <div class="row">
+            <input id="c_target_w" placeholder="W" />
+            <input id="c_target_d" placeholder="D" />
+            <input id="c_target_h" placeholder="H" />
+          </div>
+        </div>
+        <div>
+          <label class="lbl">Min wall thickness</label>
+          <input id="c_min_wall" placeholder="e.g. 2" />
+        </div>
+      </div>
+
+      <div class="grid3">
+        <div>
+          <label class="lbl">Min feature size</label>
+          <input id="c_min_feat" placeholder="e.g. 0.8" />
+        </div>
+        <div>
+          <label class="lbl">Must be printable</label>
+          <div class="row">
+            <input type="checkbox" id="c_printable" />
+            <span class="muted small">enable support heuristic</span>
+          </div>
+        </div>
+        <div>
+          <label class="lbl">Max overhang angle (deg)</label>
+          <input id="c_overhang" placeholder="e.g. 45" />
+        </div>
+      </div>
+
+      <div>
+        <label class="lbl">Notes</label>
+        <textarea id="c_notes" rows="2" placeholder="Optional notes for the AI and export"></textarea>
+      </div>
+
+      <div class="row">
+        <button id="btnLoadConstraints" class="secondary">Load constraints</button>
+        <button id="btnSaveConstraints" class="success">Save constraints</button>
+      </div>
+      <pre id="constraintsDebug" class="pre muted"></pre>
+    </section>
+
+    <section class="card">
+      <h2>2) Upload sketch (optional)</h2>
+      <div class="row">
+        <input type="file" id="sketchFile" accept=".png,.jpg,.jpeg,.webp" />
+        <button id="btnUploadSketch">Upload</button>
+      </div>
+      <div class="row">
+        <label>Sketch asset ID:</label>
+        <code id="sketchAssetId">(none)</code>
+      </div>
+      <div id="sketchPreviewWrap" class="preview-wrap"></div>
+    </section>
+
+    <section class="card">
+      <h2>3) Create concept revision</h2>
+      <div class="grid2">
+        <div>
+          <h3>From text (AI)</h3>
+          <textarea id="desc" rows="6" placeholder="Describe the object (dimensions, holes, etc.)"></textarea>
+          <div class="row">
+            <input id="csvPath" value="user_api.csv" />
+            <input id="modelName" value="gpt-4.1" />
+          </div>
+          <button id="btnCreateFromText">Generate revision from text</button>
+          <p class="muted small">Requires OpenAI + user_api.csv (BYOK).</p>
+        </div>
+        <div>
+          <h3>From PartSpec JSON</h3>
+          <textarea id="specJson" rows="6" placeholder='{"version":"1.0", ...}'></textarea>
+          <button id="btnCreateFromSpec" class="secondary">Generate revision from spec</button>
+          <p class="muted small">Works without OpenAI.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>4) Current revision</h2>
+      <div class="row">
+        <label>Revision #:</label>
+        <code id="currentRev">(none)</code>
+        <button id="btnApprove" class="success">Approve</button>
+        <button id="btnFinalize" class="warning">Finalize (higher-res)</button>
+      </div>
+
+      <div class="row">
+        <label>Finalize pitch factor:</label>
+        <input id="pitchFactor" value="0.5" />
+      </div>
+
+      <h3>Constraint checks</h3>
+      <div id="constraintsSummary" class="constraints-summary"></div>
+
+      <h3>Drawing (SVG)</h3>
+      <div id="drawingWrap" class="drawing"></div>
+
+      <h3>Downloads</h3>
+      <ul>
+        <li><a id="linkStl" href="#" target="_blank" rel="noreferrer">STL</a></li>
+        <li><a id="linkDims" href="#" target="_blank" rel="noreferrer">dimensions.json</a></li>
+      </ul>
+
+      <h3>Reports</h3>
+      <pre id="report" class="pre"></pre>
+
+      <h3>AI notes</h3>
+      <pre id="aiNotes" class="pre muted"></pre>
+
+      <h3>Clarifications</h3>
+      <div id="clarifyWrap" class="clarify"></div>
+
+      <h3>Revisions</h3>
+      <div id="revisionsWrap" class="revisions"></div>
+    </section>
+
+    <section class="card">
+      <h2>5) Apply change request (AI)</h2>
+      <textarea id="changeRequest" rows="3" placeholder="e.g. Move hole H1 5mm left and make it Ø8mm"></textarea>
+      <button id="btnApplyChange">Apply change (new revision)</button>
+      <p class="muted small">Requires OpenAI + user_api.csv (BYOK).</p>
+    </section>
+  </main>
+
+  <footer class="muted small">
+    <p>Filesystem persistence: sessions stored under <code>data/</code>, outputs under <code>artifacts/</code>.</p>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

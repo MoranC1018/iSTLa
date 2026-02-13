@@ -1,0 +1,248 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/partspec_v1.schema.json",
+  "title": "PartSpec v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "units",
+    "solids",
+    "operations",
+    "final",
+    "tessellation"
+  ],
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^1\\.0$"
+    },
+    "name": {
+      "type": "string"
+    },
+    "units": {
+      "type": "string",
+      "enum": [
+        "mm",
+        "cm",
+        "in"
+      ]
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "coordinate_system": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "convention": {
+          "type": "string",
+          "default": "x=width, y=depth, z=height"
+        },
+        "right_handed": {
+          "type": "boolean",
+          "default": true
+        },
+        "origin": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        }
+      }
+    },
+    "solids": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/solid"
+      }
+    },
+    "operations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/operation"
+      }
+    },
+    "final": {
+      "type": "string"
+    },
+    "tessellation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "grid_pitch"
+      ],
+      "properties": {
+        "grid_pitch": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Sampling pitch in model units (smaller -> higher resolution)."
+        },
+        "padding": {
+          "type": "number",
+          "minimum": 0,
+          "default": 2.0,
+          "description": "Extra margin around computed bounds for meshing."
+        },
+        "max_voxels": {
+          "type": "integer",
+          "minimum": 1000,
+          "default": 5000000,
+          "description": "Safety cap to prevent huge memory use."
+        }
+      }
+    }
+  },
+  "$defs": {
+    "vec3": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "solid": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "center"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "box",
+            "cylinder_z"
+          ]
+        },
+        "center": {
+          "$ref": "#/$defs/vec3"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "size": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "minItems": 3,
+          "maxItems": 3,
+          "description": "For box: [sx, sy, sz]"
+        },
+        "radius": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "For cylinder_z"
+        },
+        "height": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "For cylinder_z"
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "solid",
+            "tool"
+          ],
+          "default": "solid"
+        },
+        "rotation": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3,
+          "default": [
+            0,
+            0,
+            0
+          ],
+          "description": "Euler rotation degrees. (Not implemented in MVP; must be [0,0,0].)"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "box"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "size"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "cylinder_z"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "radius",
+              "height"
+            ]
+          }
+        }
+      ]
+    },
+    "operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "op",
+        "a"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "op": {
+          "type": "string",
+          "enum": [
+            "union",
+            "difference",
+            "intersection"
+          ]
+        },
+        "a": {
+          "type": "string"
+        },
+        "b": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        }
+      }
+    }
+  }
+}
