@@ -128,12 +128,23 @@ Response includes `asset_id` and a `url` you can view.
 
 ## Optional: OpenAI (ChatGPT) text -> PartSpec
 
-1) Copy `user_api.csv.example` to `user_api.csv` and put your key in:
+1) Provide credentials (recommended: env var so no key file is written):
+
+```bash
+export OPENAI_API_KEY="sk-..."
+# optional:
+# export OPENAI_ORGANIZATION="org_..."
+# export OPENAI_PROJECT="proj_..."
+```
+
+Alternative file mode (also safe to keep local):
 
 ```bash
 cp user_api.csv.example user_api.csv
 # edit user_api.csv
 ```
+
+`user_api.csv` is ignored by git via `.gitignore` and should never be committed.
 
 2) Create a concept revision from text:
 
